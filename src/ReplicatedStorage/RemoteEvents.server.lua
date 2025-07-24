@@ -99,6 +99,31 @@ local startRaid = Instance.new("RemoteEvent")
 startRaid.Name = "StartRaid"
 startRaid.Parent = remotes
 
+-- Combat remotes (unlocked after 2 rebirths)
+local challengePlayer = Instance.new("RemoteEvent")
+challengePlayer.Name = "ChallengePlayer"
+challengePlayer.Parent = remotes
+
+local acceptChallenge = Instance.new("RemoteEvent")
+acceptChallenge.Name = "AcceptChallenge"
+acceptChallenge.Parent = remotes
+
+local challengeReceived = Instance.new("RemoteEvent")
+challengeReceived.Name = "ChallengeReceived"
+challengeReceived.Parent = remotes
+
+local battleTap = Instance.new("RemoteEvent")
+battleTap.Name = "BattleTap"
+battleTap.Parent = remotes
+
+local selectBattleToon = Instance.new("RemoteEvent")
+selectBattleToon.Name = "SelectBattleToon"
+selectBattleToon.Parent = remotes
+
+local battleUpdate = Instance.new("RemoteEvent")
+battleUpdate.Name = "BattleUpdate"
+battleUpdate.Parent = remotes
+
 -- General notification remote
 local notification = Instance.new("RemoteEvent")
 notification.Name = "Notification"
