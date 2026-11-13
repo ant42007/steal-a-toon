@@ -2,6 +2,7 @@
 // shirt/pants textures with baked shading (like real Roblox clothing templates), glossy hair accessories,
 // BillboardGui-style overhead number tags, R6 poses, and despawn / spawn-in effects.
 import * as THREE from 'three';
+import { buildHair } from './hair.js';
 
 export const plastic = (color, o = {}) => new THREE.MeshLambertMaterial({ color, ...o });
 export const gloss = (color, shininess = 60) => new THREE.MeshPhongMaterial({ color, shininess, specular: 0x555555 });
@@ -281,71 +282,6 @@ function torsoBelt(c, w, h, pt) {
   c.fillStyle = pt.belt; c.fillRect(0, h * 0.9, w, h * 0.1);
 }
 
-// ---------------------------------------------------------------- hair accessories
-function addHair(hp, style, color, seed) {
-  const m = gloss(color, 70);
-  const R = rng(seed + 31);
-  const sph = (r, x, y, z, sx = 1, sy = 1, sz = 1, mat = m, ws = 20, hs = 14) => {
-    const g = new THREE.Mesh(new THREE.SphereGeometry(r, ws, hs), mat); g.position.set(x, y, z); g.scale.set(sx, sy, sz); g.castShadow = true; hp.add(g); return g;
-  };
-  const cap = (r, l, x, y, z, rx = 0, ry = 0, rz = 0, mat = m) => {
-    const g = new THREE.Mesh(new THREE.CapsuleGeometry(r, l, 6, 12), mat); g.position.set(x, y, z); g.rotation.set(rx, ry, rz); g.castShadow = true; hp.add(g); return g;
-  };
-  const dome = () => { // covers the top of the head, sits just above the brow line
-    const g = new THREE.Mesh(new THREE.SphereGeometry(0.69, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.5), m);
-    g.position.set(0, 0.92, -0.02); g.scale.set(1.0, 0.62, 1.0); g.castShadow = true; hp.add(g);
-    sph(0.66, 0, 0.72, -0.14, 1.0, 0.8, 0.86);                         // back volume
-    return g;
-  };
-  const H = 0.62; // head centre height above the neck
-  if (style === 'none') return;
-  if (style === 'bald') { sph(0.2, -0.6, H + 0.05, -0.1, 0.5, 1, 1.2); sph(0.2, 0.6, H + 0.05, -0.1, 0.5, 1, 1.2); return; }
-  if (style === 'swoop') {
-    dome();
-    for (let i = 0; i < 5; i++) cap(0.12, 0.42, -0.42 + i * 0.2, 1.08 - i * 0.02, 0.5, 0.25, 0, -1.15 + i * 0.05);
-    cap(0.14, 0.3, 0.52, 0.98, 0.42, 0.1, 0, -0.6);
-    for (const sx of [-1, 1]) cap(0.1, 0.25, sx * 0.62, 0.78, 0.05, 0, 0, sx * 0.15);
-    for (let i = 0; i < 4; i++) cap(0.11, 0.3, -0.35 + i * 0.23, 1.22 + R() * 0.05, -0.1 - R() * 0.2, -0.9, 0, (R() - 0.5) * 0.6);
-  } else if (style === 'spiky') {
-    dome();
-    for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2; const g = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.5, 8), m); g.position.set(Math.sin(a) * 0.35, 1.3, Math.cos(a) * 0.3 - 0.05); g.rotation.set(Math.cos(a) * 0.6, 0, -Math.sin(a) * 0.6); hp.add(g); }
-    for (let i = 0; i < 4; i++) cap(0.11, 0.3, -0.33 + i * 0.22, 1.08, 0.52, 0.5, 0, -0.3);
-  } else if (style === 'pigtails' || style === 'bob' || style === 'long' || style === 'bun') {
-    dome();
-    for (let i = 0; i < 6; i++) cap(0.1, 0.18, -0.44 + i * 0.176, 1.04, 0.54, 1.25, 0, 0);   // straight bangs
-    if (style === 'pigtails') {
-      for (const sx of [-1, 1]) {
-        const t = new THREE.Group(); t.position.set(sx * 0.66, 0.96, -0.08); t.rotation.z = sx * 0.35; hp.add(t);
-        const tie = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 8), gloss('#ff5ca8', 40)); t.add(tie);
-        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.5, 6, 12), m); tail.position.y = -0.42; t.add(tail);
-        const tip = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 8), m); tip.position.set(0, -0.78, 0.02); tip.scale.set(1, 0.8, 1); t.add(tip);
-        t.traverse(o => { if (o.isMesh) o.castShadow = true; });
-        hp.userData.tails = (hp.userData.tails || []).concat([t]);
-      }
-    } else if (style === 'bob') {
-      for (const sx of [-1, 1]) sph(0.32, sx * 0.56, 0.5, -0.05, 0.62, 1.05, 1.1);
-      sph(0.64, 0, 0.45, -0.25, 1.0, 0.85, 0.7);
-    } else if (style === 'long') {
-      for (const sx of [-1, 1]) cap(0.2, 0.9, sx * 0.58, 0.25, -0.12, 0, 0, sx * 0.05);
-      cap(0.42, 0.7, 0, 0.0, -0.42, 0.12, 0, Math.PI / 2).scale.set(1, 1.2, 0.6);
-    } else {
-      sph(0.3, 0, 1.25, -0.42, 1, 0.9, 1);
-    }
-  } else if (style === 'curly') {
-    dome();
-    for (let i = 0; i < 18; i++) { const a = R() * Math.PI * 2, b = R() * 1.1; sph(0.2, Math.sin(a) * Math.sin(b) * 0.6, 0.9 + Math.cos(b) * 0.4, Math.cos(a) * Math.sin(b) * 0.55 - 0.08); }
-  } else if (style === 'cap' || style === 'beanie') {
-    const hat = gloss(style === 'cap' ? (hp.userData.capColor || '#2b4fa8') : '#c0392b', 20);
-    sph(0.22, -0.6, 0.62, -0.08, 0.4, 1, 1, m); sph(0.22, 0.6, 0.62, -0.08, 0.4, 1, 1, m);
-    const crown = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.5), hat);
-    crown.position.set(0, 0.95, -0.02); crown.scale.set(1, 0.7, 1); crown.castShadow = true; hp.add(crown);
-    if (style === 'cap') {
-      const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.06, 24, 1, false, -Math.PI / 2, Math.PI), hat);
-      brim.position.set(0, 0.98, 0.45); brim.scale.set(1.15, 1, 0.9); brim.rotation.x = 0.12; hp.add(brim);
-    } else { const band = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.18, 32), gloss('#962d22', 20)); band.position.y = 0.98; hp.add(band); }
-  }
-}
-
 // ---------------------------------------------------------------- overhead number (BillboardGui)
 export function numberTag(text, { color = '#ffffff', glow = 'rgba(255,255,255,0.0)', size = 0.6 } = {}) {
   const fontPx = 150;
@@ -411,8 +347,7 @@ export function makeAvatar(o) {
   const fc = new Face({ ...face, skin });
   const decal = new THREE.Mesh(faceGeo, fc.material); decal.position.y = 0.62; decal.renderOrder = 2; headPivot.add(decal);
   mats.push(fc.material);
-  if (capColor) headPivot.userData.capColor = capColor;
-  addHair(headPivot, hair, hairColor, seed);
+  buildHair(headPivot, hair, hairColor, seed, { capColor });
   headPivot.traverse(m => { if (m.isMesh && m.material !== fc.material && !mats.includes(m.material)) mats.push(m.material); });
 
   g.traverse(m => { if (m.isMesh) { m.castShadow = m.material !== fc.material; m.receiveShadow = true; } });

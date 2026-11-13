@@ -1,0 +1,7 @@
+{
+  "note": "Recurring cast voices, shared by every Roblox story. Leo is the main character of every video.",
+  "voices": {
+    "N":    { "voice": "am_michael", "speed": 1.35, "tempo": 1.28, "squeeze": 0.09 },
+    "LEO":  { "voice": "af_bella",   "speed": 1.25, "tempo": 1.15, "pitch": 1.08, "squeeze": 0.08 }
+  }
+}

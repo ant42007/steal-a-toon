@@ -92,13 +92,47 @@ def tts_clip(text, vcfg, fx=None):
     raw = out + ".raw.wav"
     write_wav(raw, a, sr)
     filters = []
+    rb = []
     if vcfg.get("pitch"):
-        filters.append(f"rubberband=pitch={vcfg['pitch']}")
+        rb.append(f"pitch={vcfg['pitch']}")
+    if vcfg.get("tempo"):            # pitch-preserving time-stretch: fast "Roblox story" pacing that stays clear
+        rb.append(f"tempo={vcfg['tempo']}")
+    if rb:
+        filters.append("rubberband=" + ":".join(rb))
     if fx == "echo":
         filters += ["apad=pad_dur=0.9", "lowpass=f=5200", "aecho=0.85:0.75:110|230|420:0.45|0.3|0.18", "volume=0.8"]
     filters.append(f"aresample={SR}")
     ffmpeg_filter(raw, out, ",".join(filters))
     os.remove(raw)
+    if vcfg.get("squeeze") and fx != "echo":
+        a2, _ = read_wav(out)
+        write_wav(out, squeeze_pauses(a2, vcfg["squeeze"]))
+    return out
+
+
+def squeeze_pauses(a, max_pause, thresh_db=-38):
+    """Shorten silences inside a line (the TTS pauses after every period) to at most max_pause seconds."""
+    hop = SR // 100
+    n = len(a) // hop
+    rms = np.sqrt(np.mean(a[: n * hop].reshape(n, hop) ** 2, axis=1) + 1e-12)
+    silent = rms < (np.max(rms) * 10 ** (thresh_db / 20))
+    keep = np.ones(len(a), bool)
+    i = 0
+    while i < n:
+        if silent[i]:
+            j = i
+            while j < n and silent[j]:
+                j += 1
+            run = (j - i) * hop
+            limit = int(max_pause * SR)
+            if run > limit and i > 0 and j < n:          # only interior pauses
+                cut0 = i * hop + limit // 2
+                cut1 = j * hop - limit // 2
+                keep[cut0:cut1] = False
+            i = j
+        else:
+            i += 1
+    out = a[keep]
     return out
 
 
@@ -175,7 +209,10 @@ def main(script_path, outdir):
     os.makedirs(outdir, exist_ok=True)
     S = json.load(open(script_path))
     D = S["defaults"]
-    voices = S["voices"]
+    voices = {}
+    if S.get("castVoices"):
+        voices.update(json.load(open(os.path.join(HERE, S["castVoices"])))["voices"])
+    voices.update(S.get("voices", {}))
     fps = S.get("fps", 30)
 
     lines, cues, scenes, music_events = [], [], [], []
@@ -194,7 +231,7 @@ def main(script_path, outdir):
             if "music" in it:
                 music_events.append({"t": t, **it["music"]})
                 continue
-            vc = voices[it["say"]]
+            vc = {**voices[it["say"]], **it.get("voice", {})}   # per-line overrides (e.g. slow down a key line)
             path = tts_clip(it["text"], vc, it.get("fx"))
             a, _ = read_wav(path)
             ww = whisper_words(path)

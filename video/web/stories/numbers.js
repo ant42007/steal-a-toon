@@ -18,45 +18,8 @@ export const STYLE = {
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
-// ---------------------------------------------------------------- cast
-const SKIN = '#f3d2b1';
-const CAST = {
-  leo: (o = {}) => makeAvatar({ skin: SKIN, scale: 0.82, seed: 11, hair: 'swoop', hairColor: '#4a2c19',
-    shirt: { kind: 'hoodie', color: '#2f7de1', accent: '#f4f4f4' }, pants: { kind: 'jeans', color: '#3b5a8c', shoes: '#f2f2f2', sole: '#d9d9d9' }, ...o }),
-  leoPJ: (o = {}) => makeAvatar({ skin: SKIN, scale: 0.82, seed: 11, hair: 'swoop', hairColor: '#4a2c19',
-    shirt: { kind: 'pajama', color: '#5d8fd8', accent: '#ffffff' }, pants: { kind: 'pjpants', color: '#5d8fd8', shoes: '#5d8fd8', sole: '#5d8fd8' }, ...o }),
-  ellie: (o = {}) => makeAvatar({ skin: SKIN, scale: 0.68, seed: 21, hair: 'pigtails', hairColor: '#8a4a26', number: '21',
-    shirt: { kind: 'dress', color: '#ff8fc2', graphic: 'heart', accent: '#ff3d7f' }, pants: { kind: 'skirt', color: '#9b59d0', shoes: '#ff5ca8', sole: '#ffffff', socks: '#ffffff' },
-    face: {}, ...o }),
-  elliePJ: (o = {}) => makeAvatar({ skin: SKIN, scale: 0.68, seed: 21, hair: 'pigtails', hairColor: '#8a4a26', number: '21',
-    shirt: { kind: 'pajama', color: '#f7a8cf', accent: '#ffffff' }, pants: { kind: 'pjpants', color: '#f7a8cf', shoes: '#f7a8cf', sole: '#f7a8cf' }, ...o }),
-  mom: (o = {}) => makeAvatar({ skin: '#f0c8a4', seed: 31, hair: 'bob', hairColor: '#3d2618', number: '4,000,112',
-    shirt: { kind: 'sweater', color: '#c85a7c' }, pants: { kind: 'slacks', color: '#3b3f5c', shoes: '#2b2b2b', belt: null }, ...o }),
-  mailman: (o = {}) => makeAvatar({ skin: '#c98e6a', seed: 41, hair: 'cap', capColor: '#2a3f8f', hairColor: '#1d1d1d', number: '17',
-    shirt: { kind: 'uniform', color: '#9cc6ea', accent: '#2a3f8f' }, pants: { kind: 'slacks', color: '#2a3f6f', shoes: '#1d1d1d' }, ...o }),
-  driver: (o = {}) => makeAvatar({ skin: '#8d5a3b', seed: 51, hair: 'curly', hairColor: '#1b1b1b', number: '18',
-    shirt: { kind: 'tee', color: '#6c7a89', graphic: 'stripe', accent: '#f5b800' }, pants: { kind: 'jeans', color: '#2f3d55', shoes: '#3b2a1e' }, ...o }),
-  guard: (o = {}) => makeAvatar({ skin: '#f0c8a4', seed: 61, hair: 'bun', hairColor: '#b9b9b9', number: '19',
-    shirt: { kind: 'vest', color: '#ff7a1a', inner: '#f4f4f4' }, pants: { kind: 'slacks', color: '#30343c', shoes: '#1d1d1d' }, ...o }),
-  scientist: (o = {}) => makeAvatar({ skin: '#e2b08a', seed: 71, hair: 'bald', hairColor: '#8a8a8a', face: { glasses: true },
-    shirt: { kind: 'labcoat', color: '#f4f4f4', inner: '#9cc6ea', accent: '#c0392b' }, pants: { kind: 'slacks', color: '#3c3c44', shoes: '#1d1d1d' }, ...o }),
-  townie: (i, number) => {
-    const R = rng(300 + i);
-    const shirts = [
-      { kind: 'tee', color: '#e74c3c', graphic: 'star', accent: '#ffd23f' }, { kind: 'hoodie', color: '#27ae60', accent: '#f4f4f4' },
-      { kind: 'tee', color: '#f1c40f', graphic: 'stripe', accent: '#1d1d1d' }, { kind: 'suit', color: '#1f2a44', inner: '#f4f4f4', accent: '#c0392b' },
-      { kind: 'hoodie', color: '#8e44ad', accent: '#f4f4f4' }, { kind: 'tee', color: '#1abc9c', graphic: 'heart', accent: '#ffffff' },
-      { kind: 'sweater', color: '#e67e22' }, { kind: 'tee', color: '#ecf0f1', graphic: 'star', accent: '#3498db' },
-      { kind: 'suit', color: '#7a1f2b', inner: '#f4f4f4', accent: '#1d1d1d' }, { kind: 'hoodie', color: '#34495e', accent: '#f4f4f4' },
-    ];
-    const pants = [{ kind: 'jeans', color: '#3b5a8c', shoes: '#f2f2f2' }, { kind: 'slacks', color: '#2b2b2b', shoes: '#111' }, { kind: 'jeans', color: '#4a6fa5', shoes: '#c0392b' }, { kind: 'shorts', color: '#c8a46e', shoes: '#ffffff' }, { kind: 'skirt', color: '#2c3e50', shoes: '#111' }];
-    const hairs = ['swoop', 'long', 'curly', 'spiky', 'bob', 'cap', 'pigtails', 'bun'];
-    const skins = ['#f3d2b1', '#e2b08a', '#c98e6a', '#8d5a3b', '#f0c8a4', '#6b4430'];
-    const hairCols = ['#2a1d16', '#4a2c19', '#c49a63', '#111111', '#8a3b1f', '#d9c37a'];
-    return makeAvatar({ skin: skins[Math.floor(R() * skins.length)], shirt: shirts[i % shirts.length], pants: pants[i % pants.length],
-      hair: hairs[i % hairs.length], hairColor: hairCols[i % hairCols.length], seed: 400 + i, number, scale: i % 4 === 3 ? 0.8 : 1, capColor: '#c0392b' });
-  },
-};
+// cast: shared across every Roblox story (Leo is the main character of every video)
+import { CAST } from '../rbx/cast.js';
 
 const headPos = (av) => { const v = new THREE.Vector3(); av.head.getWorldPosition(v); return v; };
 
@@ -348,16 +311,18 @@ export const SCENES = {
     const sign = stopSign(); s.scene.add(sign);
     const c1 = ctx.cue('despawn', 0), c2 = ctx.cue('despawn', 1), c3 = ctx.cue('despawn', 2);
     const busZ = (lt) => 26 - 6.2 * lt;   // bus drives toward screen-right (−z)
+    // holds scale with the spacing of the three disappearances so the keys can never cross
+    const h1 = Math.min(0.45, (c2 - c1) * 0.5), h2 = Math.min(0.45, (c3 - c2) * 0.5), lead = (n) => Math.min(0.25, n * 0.3);
     s.cam = {
       keys: [
         { t: 0, pos: V(17.5, 6.4, 15.5), look: V(7, 4.8, 7.5) },
-        { t: c1 - 0.25, pos: V(17.0, 6.0, 8.8), look: V(9.2, 5.1, 8.3) },
-        { t: c1 + 0.45, pos: V(16.9, 5.9, 8.3), look: V(9.2, 5.0, 8.1) },      // hold: the mailman breaks apart
-        { t: c2 - 0.05, pos: V(15.2, 5.3, 1.2), look: V(-3, 4.8, busZ(c2) - 8.6) },
-        { t: c2 + 0.45, pos: V(15.0, 5.2, 0.2), look: V(-3, 4.8, busZ(c2 + 0.45) - 8.4) },   // hold on the driver
-        { t: c3 - 0.05, pos: V(15.0, 5.0, -7.0), look: V(3, 4.3, -8.0) },
-        { t: c3 + 0.55, pos: V(14.9, 5.0, -7.6), look: V(3, 4.0, -8.1) },     // hold: the guard breaks apart
-        { t: ctx.dur, pos: V(15, 5.2, -9.6), look: V(3, 3.4, -8.5) },
+        { t: c1 - lead(c1), pos: V(17.0, 6.0, 8.8), look: V(9.2, 5.1, 8.3) },
+        { t: c1 + h1, pos: V(16.9, 5.9, 8.3), look: V(9.2, 5.0, 8.1) },                       // hold: the mailman breaks apart
+        { t: c2 + 0.05, pos: V(15.2, 5.3, 1.2), look: V(-3, 4.8, busZ(c2) - 8.6) },
+        { t: c2 + h2, pos: V(15.0, 5.2, 0.2), look: V(-3, 4.8, busZ(c2 + h2) - 8.4) },        // hold on the driver
+        { t: c3 + 0.05, pos: V(15.0, 5.0, -7.0), look: V(3, 4.3, -8.0) },
+        { t: Math.max(c3 + 0.6, ctx.dur - 0.4), pos: V(14.9, 5.0, -7.6), look: V(3, 4.0, -8.1) }, // hold: the guard breaks apart
+        { t: ctx.dur + 0.5, pos: V(15, 5.2, -9.6), look: V(3, 3.4, -8.5) },
       ],
     };
     s.update = (lt) => {
@@ -419,7 +384,7 @@ export const SCENES = {
     const rev = ctx.cue('reveal');
     const tag20 = addTag(leo, '20', { glow: 'rgba(255,40,40,0.95)' });
     const L = ctx.lines;
-    s.cam = { path: [[V(bx + 6.5, 6.6, 6.5), V(bx + 1.2, 2.6, -2.8)], [V(bx + 1.4, 5.4, 1.2), V(bx + 2.4, 3.4, -3.0)], [V(bx + 0.4, 3.6, -2.65), V(bx + 3.3, 4.75, -2.6)]], ease: 'inout' };
+    s.cam = { path: [[V(bx + 6.5, 6.6, 6.5), V(bx + 1.2, 2.6, -2.8)], [V(bx + 1.4, 5.4, 1.2), V(bx + 2.4, 3.4, -3.0)], [V(bx + 0.4, 3.75, -2.65), V(bx + 3.3, 5.05, -2.6)]], ease: 'out' };
     s.update = (lt) => {
       resetPose(ellie); resetPose(leo); idle(leo, lt, 0.4);
       ellie.face.set({ expr: lt > L[1].ls ? 'worried' : 'smile', look: lt > L[1].ls ? -0.6 : 0 });
@@ -500,7 +465,7 @@ export const SCENES = {
     const ff = new THREE.Mesh(new THREE.SphereGeometry(2.3, 32, 16), new THREE.MeshBasicMaterial({ color: '#9fd8ff', transparent: true, opacity: 0.0, depthWrite: false, blending: THREE.AdditiveBlending }));
     ff.position.set(0, 3.2, 0); sc.add(ff);
     const sparks = sparkleField(sc, 40, [0, 3.2, 0], [4.2, 4.6, 4.2], 7, '#cfefff', [0.12, 0.35]);
-    const L = ctx.lines;
+    const L = ctx.lines.slice(-2);          // [narrator "somebody was waiting", Leo's line]
     const walkEnd = L[1].ls - 0.1;
     s.cam = { path: [[V(0.5, 22, 17), V(0, 2.4, 0)], [V(-2.0, 7.5, 12), V(0.8, 3.0, 0)], [V(-2.6, 4.1, 8.4), V(1.1, 3.4, 0.2)]], ease: 'inout' };
     s.update = (lt) => {

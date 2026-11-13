@@ -1,0 +1,317 @@
+{
+  "version": "v2",
+  "slug": "numbers",
+  "story": "numbers",
+  "title": "The Numbers",
+  "fps": 30,
+  "defaults": {
+    "gap": 0.06,
+    "sceneLead": 0.04,
+    "sceneTail": 0.06
+  },
+  "voices": {
+    "ELLIE": {
+      "voice": "af_heart",
+      "speed": 1.15,
+      "tempo": 1.12,
+      "pitch": 1.22,
+      "squeeze": 0.08
+    }
+  },
+  "scenes": [
+    {
+      "id": "crowd",
+      "items": [
+        {
+          "say": "N",
+          "text": "In this world, everyone has a number above their head."
+        },
+        {
+          "say": "N",
+          "text": "Some are huge. Some are tiny."
+        }
+      ]
+    },
+    {
+      "id": "lab",
+      "items": [
+        {
+          "say": "N",
+          "text": "Nobody knows what they mean. Not even scientists."
+        }
+      ]
+    },
+    {
+      "id": "yard",
+      "items": [
+        {
+          "say": "N",
+          "text": "And you can see everyone's number... except your own.",
+          "after": 0.12
+        }
+      ]
+    },
+    {
+      "id": "desk",
+      "items": [
+        {
+          "say": "N",
+          "text": "So Leo wrote down every number he ever saw."
+        },
+        {
+          "say": "N",
+          "text": "His little sister, Ellie, was twenty-one."
+        }
+      ]
+    },
+    {
+      "id": "walk",
+      "items": [
+        {
+          "say": "N",
+          "text": "Ellie was scared of everything. So Leo made her a promise."
+        },
+        {
+          "say": "LEO",
+          "text": "You'll never go anywhere alone. I'll always go first.",
+          "after": 0.15,
+          "voice": {
+            "speed": 1.08,
+            "tempo": 1.05
+          }
+        }
+      ]
+    },
+    {
+      "id": "street",
+      "items": [
+        {
+          "say": "N",
+          "text": "Then one Monday, people started disappearing."
+        },
+        {
+          "say": "N",
+          "text": "The mailman.",
+          "cues": [
+            {
+              "name": "despawn",
+              "word": 9,
+              "offset": -0.12
+            }
+          ],
+          "after": 0.3
+        },
+        {
+          "say": "N",
+          "text": "The bus driver.",
+          "cues": [
+            {
+              "name": "despawn",
+              "word": 9,
+              "offset": -0.12
+            }
+          ],
+          "after": 0.3
+        },
+        {
+          "say": "N",
+          "text": "The crossing guard.",
+          "cues": [
+            {
+              "name": "despawn",
+              "word": 9,
+              "offset": -0.12
+            }
+          ],
+          "after": 0.3
+        },
+        {
+          "say": "N",
+          "text": "No warning. Just... gone.",
+          "after": 0.15
+        }
+      ]
+    },
+    {
+      "id": "notebook",
+      "items": [
+        {
+          "say": "N",
+          "text": "Everyone panicked. But Leo checked his notebook."
+        },
+        {
+          "say": "N",
+          "text": "Seventeen. Eighteen. Nineteen.",
+          "cues": [
+            {
+              "name": "scribble",
+              "word": 0,
+              "offset": -0.25
+            },
+            {
+              "name": "scribble",
+              "word": 1,
+              "offset": -0.25
+            },
+            {
+              "name": "scribble",
+              "word": 2,
+              "offset": -0.25
+            }
+          ]
+        },
+        {
+          "say": "N",
+          "text": "They were disappearing in order."
+        },
+        {
+          "say": "N",
+          "text": "And after nineteen... came Ellie.",
+          "cue": "circle",
+          "cueAt": "end",
+          "after": 0.15
+        }
+      ]
+    },
+    {
+      "id": "vigil",
+      "ambience": "night",
+      "items": [
+        {
+          "say": "N",
+          "text": "That night, Leo stayed up, holding her hand."
+        },
+        {
+          "say": "ELLIE",
+          "text": "Leo? Why is your number twenty?",
+          "cue": "reveal",
+          "cueAt": "end",
+          "cueOffset": 0.2,
+          "after": 0.0
+        },
+        {
+          "music": {
+            "gain": 0.0,
+            "fade": 0.25
+          }
+        },
+        {
+          "pause": 0.3
+        },
+        {
+          "cue": "heartbeat"
+        },
+        {
+          "pause": 1.0
+        },
+        {
+          "say": "N",
+          "text": "Leo had never seen his own number."
+        },
+        {
+          "say": "N",
+          "text": "He was next.",
+          "after": 0.15
+        }
+      ]
+    },
+    {
+      "id": "goodbye",
+      "items": [
+        {
+          "say": "ELLIE",
+          "text": "Don't go!"
+        },
+        {
+          "say": "LEO",
+          "text": "Hey. I promised. I always go first.",
+          "cue": "despawn",
+          "cueAt": "end",
+          "cueOffset": 0.35,
+          "after": 1.0
+        }
+      ]
+    },
+    {
+      "id": "turn",
+      "items": [
+        {
+          "say": "N",
+          "text": "The next morning, it was Ellie's turn.",
+          "cue": "despawn",
+          "cueAt": "end",
+          "cueOffset": 0.25,
+          "after": 0.95
+        }
+      ]
+    },
+    {
+      "id": "spawn",
+      "lead": 0.0,
+      "items": [
+        {
+          "cue": "spawn"
+        },
+        {
+          "pause": 0.5
+        },
+        {
+          "say": "N",
+          "text": "She opened her eyes... somewhere else."
+        },
+        {
+          "say": "N",
+          "text": "And somebody was waiting."
+        },
+        {
+          "say": "LEO",
+          "text": "Told you. You'll never go anywhere alone.",
+          "after": 0.25
+        }
+      ]
+    },
+    {
+      "id": "ending",
+      "items": [
+        {
+          "say": "N",
+          "text": "Now Ellie knows what the numbers mean."
+        },
+        {
+          "say": "N",
+          "text": "It's the order we leave in... so nobody ever arrives alone.",
+          "after": 1.0
+        }
+      ]
+    }
+  ],
+  "music": [
+    {
+      "scene": "crowd",
+      "at": "start",
+      "gain": 1.0,
+      "section": "mystery"
+    },
+    {
+      "scene": "street",
+      "at": "start",
+      "gain": 1.0,
+      "section": "tense"
+    },
+    {
+      "scene": "goodbye",
+      "at": "start",
+      "gain": 0.8,
+      "fade": 1.0,
+      "section": "sorrow"
+    },
+    {
+      "scene": "spawn",
+      "at": "start",
+      "gain": 1.0,
+      "fade": 1.5,
+      "section": "hope"
+    }
+  ],
+  "castVoices": "scripts/cast-voices.json"
+}
