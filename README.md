@@ -13,6 +13,14 @@
 | `renders/cracks-v1.mp4` | Cut 1, 69.9s |
 | `renders/cracks-v2.mp4` | Cut 2, 59.5s, with the notes applied |
 
+## THE NUMBERS
+*"In this world, everyone has a number above their head."*
+
+| | |
+|---|---|
+| `story/04-the-numbers.md` | Script, beat map, and what changed to make it look like Roblox |
+| `renders/numbers-v1.mp4` | 61s, Roblox-accurate kit: classic heads and face decals, R6 bodies, shaded clothing, glossy hair, Roblox materials and baseplate, bubble chat |
+
 ## Pipeline (`video/`)
 
 ```
@@ -21,8 +29,10 @@ scripts/script.vN.json      lines, speakers, pauses, SFX cues, music cues
                             + procedural SFX/ambience/score (tools/synth.py), voice-ducked, -14 LUFS
   └─ render.mjs             Playwright drives web/index.html frame by frame (window.renderAt(t)),
                             screenshots → ffmpeg (x264, 30fps) → muxed with the mix
-       web/lib/scenes.js    12 shots, one camera move each
-       web/lib/char.js      R6-style characters, canvas faces: expressions, lip flap, cracks
+       web/lib/scenes.js    CRACKS: 12 shots, one camera move each
+       web/stories/numbers.js  THE NUMBERS: 12 shots on the Roblox kit
+       web/rbx/             Roblox-accurate avatars (avatar.js) and world/materials (world.js)
+       web/lib/char.js      CRACKS characters: canvas faces, expressions, lip flap, cracks
        web/lib/overlay.js   word-by-word captions, CRACK! popups, flashes
   └─ tools/review.py        contact sheets, caption-sync check vs. a fresh transcription, loudness
 ```
@@ -30,6 +40,7 @@ scripts/script.vN.json      lines, speakers, pauses, SFX cues, music cues
 ```bash
 cd video
 bash build.sh v2          # → renders/cracks-v2.mp4  (about 16 min on 4 CPU cores, software WebGL)
+bash build.sh numbers-v1  # → renders/numbers-v1.mp4 (about 20 min)
 node render.mjs v2 --stills 0,13.7,42.8   # quick PNG checks
 python3 tools/review.py v2
 ```
