@@ -266,7 +266,7 @@ def main(script_path, outdir):
             sc = next(s for s in scenes if s["id"] == c["scene"])
             place(synth.shimmer(sc["end"] - c["t"]), c["t"], 0.55)
         elif c["name"] == "fridgeOpen":
-            place(synth.door_thunk(), c["t"] - 0.35, 0.9)
+            place(synth.door_thunk(), c["t"] - 0.28, 0.9)
     for sc in scenes:
         d = sc["end"] - sc["start"]
         if sc["ambience"] == "monitor":

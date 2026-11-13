@@ -17,7 +17,7 @@
     ]},
     { "id": "teeth", "items": [
       { "say": "DAD", "text": "Did you brush your teeth?" },
-      { "say": "KID", "text": "Yep!", "cue": "crack", "after": 0.7 }
+      { "say": "KID", "text": "Totally!", "cue": "crack", "after": 0.7 }
     ]},
     { "id": "plaza", "items": [
       { "say": "N", "text": "Little lies, little cracks." },

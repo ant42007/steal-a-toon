@@ -25,12 +25,12 @@ function makeCracks(seed, count) {
     const ang = R() * Math.PI * 2;
     let x = 256 + Math.cos(ang) * 250, y = 256 + Math.sin(ang) * 250;
     let dir = ang + Math.PI + (R() - 0.5) * 0.9;
-    const len = 6 + Math.floor(R() * 6);
+    const len = 8 + Math.floor(R() * 6);
     const pts = [[x, y]];
     const branches = [];
     for (let k = 0; k < len; k++) {
       dir += (R() - 0.5) * 1.1;
-      const step = 18 + R() * 22;
+      const step = 20 + R() * 16;
       x += Math.cos(dir) * step; y += Math.sin(dir) * step;
       pts.push([x, y]);
       if (R() < 0.3 && k > 1) {
@@ -117,6 +117,12 @@ export class Face {
         c.beginPath(); c.ellipse(x + 7, eyeY - h * 0.4, w * 0.32, h * 0.26, 0, 0, Math.PI * 2); c.fill();
         c.fillStyle = '#1b1b1f';
       }
+      if (this.opts.glasses) {
+        c.save(); c.strokeStyle = '#2b2b30'; c.lineWidth = 9;
+        c.beginPath(); c.roundRect(x - 40, eyeY - 38, 80, 76, 18); c.stroke();
+        if (sx === 1) { c.beginPath(); c.moveTo(256 - eyeDX + 40 + lookX, eyeY - 6); c.lineTo(256 + eyeDX - 40 + lookX, eyeY - 6); c.stroke(); }
+        c.restore();
+      }
       if (this.opts.lashes && !closed) {
         c.lineWidth = 6;
         c.beginPath(); c.moveTo(x + sx * 20, eyeY - 30); c.lineTo(x + sx * 34, eyeY - 44); c.stroke();
@@ -190,10 +196,10 @@ export class Face {
       // gold cracks glow
       if (gold) {
         c.shadowColor = 'rgba(255,190,40,0.95)'; c.shadowBlur = 22;
-        c.strokeStyle = '#ffd34d'; c.lineWidth = 11;
+        c.strokeStyle = '#ffd34d'; c.lineWidth = 17;
       } else {
         c.shadowBlur = 0;
-        c.strokeStyle = 'rgba(25,20,22,0.92)'; c.lineWidth = 8;
+        c.strokeStyle = 'rgba(25,20,22,0.95)'; c.lineWidth = 12;
       }
       strokePartial(c, cr.pts, frac);
       for (const b of cr.branches) if (frac > b.at) strokePartial(c, b.pts, Math.min(1, (frac - b.at) * 3));
@@ -201,7 +207,7 @@ export class Face {
         c.strokeStyle = 'rgba(255,255,255,0.35)'; c.lineWidth = 2.5;
         c.save(); c.translate(3, 3); strokePartial(c, cr.pts, frac); c.restore();
       } else {
-        c.shadowBlur = 0; c.strokeStyle = '#fff6c8'; c.lineWidth = 3.5; strokePartial(c, cr.pts, frac);
+        c.shadowBlur = 0; c.strokeStyle = '#fff6c8'; c.lineWidth = 5; strokePartial(c, cr.pts, frac);
       }
     }
     c.shadowBlur = 0;
@@ -330,6 +336,18 @@ export function makeCharacter(o) {
   const head = new THREE.Mesh(rbox(1.25, 1.2, 1.2, 0.3, 4), headMats);
   head.position.y = 0.62;
   headPivot.add(head);
+  if (faceOpts.mask) {
+    // a paper grocery bag over the head, face drawn on the front
+    const bagM = mat('#c49a63', { roughness: 0.9 });
+    const bag = new THREE.Mesh(rbox(1.55, 1.85, 1.5, 0.05, 2), [bagM, bagM, bagM, bagM, face.material, bagM]);
+    bag.position.y = 0.78;
+    headPivot.add(bag);
+    for (let i = 0; i < 4; i++) {
+      const fold = new THREE.Mesh(rbox(0.5, 0.25, 1.5, 0.04), bagM);
+      fold.position.set(-0.55 + i * 0.37, 1.76, 0); fold.rotation.z = (i % 2 ? 0.3 : -0.25);
+      headPivot.add(fold);
+    }
+  }
   addHair(headPivot, hair, mat(hairColor), seed);
 
   g.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
@@ -349,15 +367,15 @@ function addHair(hp, style, m, seed) {
     return;
   }
   // base cap shared by most styles
-  add(1.36, 0.42, 1.32, 0, 1.18, -0.02, 0.18);
+  add(1.34, 0.36, 1.3, 0, 1.27, -0.02, 0.16);
   if (style === 'short') {
-    add(1.3, 0.25, 0.3, 0, 1.0, 0.52, 0.1, 0.2);
+    add(1.3, 0.22, 0.3, 0, 1.13, 0.52, 0.1, 0.2);
     add(0.2, 0.55, 1.1, -0.66, 0.85, -0.08); add(0.2, 0.55, 1.1, 0.66, 0.85, -0.08);
   } else if (style === 'spiky') {
     for (let i = 0; i < 5; i++) add(0.38, 0.5, 0.38, -0.5 + i * 0.25, 1.45, 0.1 - (i % 2) * 0.3, 0.08, 0.3, (i - 2) * 0.25);
-    add(1.3, 0.3, 0.3, 0, 1.0, 0.52, 0.1, 0.3);
+    add(1.3, 0.24, 0.3, 0, 1.13, 0.52, 0.1, 0.3);
   } else if (style === 'ponytail' || style === 'bun' || style === 'long') {
-    add(1.38, 0.3, 0.32, 0, 1.0, 0.5, 0.1, 0.15);            // bangs
+    add(1.36, 0.22, 0.3, 0, 1.12, 0.5, 0.1, 0.15);           // bangs
     add(0.22, 0.9, 1.2, -0.68, 0.72, -0.05); add(0.22, 0.9, 1.2, 0.68, 0.72, -0.05);   // sides
     add(1.36, 1.0, 0.25, 0, 0.75, -0.66);                     // back
     if (style === 'ponytail') {

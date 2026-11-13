@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>CRACKS renderer</title>
+<style>
+  @font-face { font-family: 'Lilita One'; src: url('./fonts/LilitaOne-Regular.ttf') format('truetype'); }
+  html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  #gl { position: absolute; inset: 0; width: 1080px; height: 1920px; display: block; }
+  #ui { position: absolute; inset: 0; pointer-events: none; font-family: 'Lilita One', sans-serif; }
+  #vig { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 62% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.85) 100%); }
+  #flash { position: absolute; inset: 0; opacity: 0; }
+  #fade { position: absolute; inset: 0; background: #000; opacity: 0; }
+  #cap {
+    position: absolute; left: 70px; right: 70px; top: 1210px;
+    text-align: center; line-height: 1.12; font-size: 118px; letter-spacing: 1px;
+    color: #fff; -webkit-text-stroke: 20px #000; paint-order: stroke fill;
+    text-shadow: 0 10px 0 rgba(0,0,0,0.55);
+  }
+  #cap .w { display: inline-block; transform-origin: 50% 70%; }
+  #cap.echo { font-style: italic; opacity: 0.88; }
+  #pop {
+    position: absolute; font-size: 150px; color: #fff; letter-spacing: 2px;
+    -webkit-text-stroke: 22px #c0262d; paint-order: stroke fill; text-shadow: 0 12px 0 rgba(0,0,0,0.5);
+    white-space: nowrap; opacity: 0;
+  }
+</style>
+<script type="importmap">
+{ "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="stage"><canvas id="gl" width="1080" height="1920"></canvas><div id="ui"></div></div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
