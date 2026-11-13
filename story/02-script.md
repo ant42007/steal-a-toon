@@ -64,3 +64,13 @@ It follows the same skeleton as the reference reel: a world rule, the one person
 
 **12. NIGHT** (pull back out the window to the lit apartment building)
 > **NARRATOR:** It was the first lie Lily ever told. Because in this world, the people with the most cracks... are the ones who love you most.
+
+---
+
+## Cut 2 changes (after the director's notes)
+
+- **Hook cut in half (15.0s → 6.1s):** scene 3 (town square) is gone. Scene 4 now opens with **"Nobody lies. Except Lily's mom."**, which carries the status quo and the turn in one line.
+- **Pause before the twist:** after "Then stop lying!" the shot holds on Mom turning her face away while the monitor beeps and the music cuts out. Then a hard cut to the dark kitchen, where the fridge opens in silence. The narrator's "That night, Lily opened the fridge" is cut, so the first word after the pause is **"Empty."**
+- **Opening shot:** frame 1 is a close-up of a grinning, cracked face, pulling back to the town.
+- **Runtime:** 59.5s.
+

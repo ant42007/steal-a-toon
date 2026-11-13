@@ -326,9 +326,24 @@ def main(script_path, outdir):
     write_wav(os.path.join(outdir, "music.wav"), music)
     write_wav(os.path.join(outdir, "sfx.wav"), sfx * 0.55)
     write_wav(os.path.join(outdir, "mix_raw.wav"), mix / max(1.0, np.max(np.abs(mix))))
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", os.path.join(outdir, "mix_raw.wav"),
-                    "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-ar", str(SR), "-ac", "2",
-                    os.path.join(outdir, "audio.wav")], check=True)
+    # gentle bus compression, then exact gain to -14 LUFS with a -1.5 dBFS peak limiter (Reels/TikTok target)
+    raw = os.path.join(outdir, "mix_raw.wav")
+    final = os.path.join(outdir, "audio.wav")
+    comp = "acompressor=threshold=-22dB:ratio=2.5:attack=8:release=140:knee=4"
+
+    def integrated(path, chain="anull"):
+        r = subprocess.run(["ffmpeg", "-hide_banner", "-i", path, "-af", chain + ",ebur128", "-f", "null", "-"],
+                           capture_output=True, text=True, check=True)
+        return float(re.findall(r"I:\s+(-?[\d.]+) LUFS", r.stderr)[-1])
+
+    gain = -14.0 - integrated(raw, comp)
+    for _ in range(3):
+        chain = f"{comp},volume={gain:.2f}dB,alimiter=limit=0.84:attack=5:release=60:level=false:latency=true"
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", raw, "-af", chain, "-ar", str(SR), "-ac", "2", final], check=True)
+        err = -14.0 - integrated(final)
+        if abs(err) < 0.2:
+            break
+        gain += err
 
     timeline = {"version": S["version"], "title": S.get("title"), "fps": fps, "duration": round(total, 3),
                 "scenes": scenes, "lines": lines, "cues": cues,

@@ -36,9 +36,9 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const headPos = (ch) => { const v = new THREE.Vector3(); ch.head.getWorldPosition(v); return v; };
 
 // crack state helper: base count, +1 at cue time with a quick grow
-function crackAt(face, base, lt, cueT, extra = {}) {
-  if (lt >= cueT) face.set({ cracks: base + 1, grow: smooth(cueT, cueT + 0.22, lt), ...extra });
-  else face.set({ cracks: base, grow: 1, ...extra });
+function crackAt(face, base, lt, cueT, extra = {}, hot = true) {
+  if (lt >= cueT) face.set({ cracks: base + 1, grow: smooth(cueT, cueT + 0.22, lt), fresh: hot ? 1 - smooth(cueT + 0.35, cueT + 1.0, lt) : 0, ...extra });
+  else face.set({ cracks: base, grow: 1, fresh: 0, ...extra });
 }
 
 class Shot {
@@ -116,18 +116,17 @@ export const SCENES = {
     sunnyStreet(s);
     const guy = s.add(CAST.townie(1), -7.4, 0.3, 5.4, 0.45);
     const gal = s.add(CAST.townie(2), -5.0, 0.3, 4.9, -0.35);
-    guy.face.set({ expr: 'happy', cracks: 2 });
-    gal.face.set({ expr: 'smile', cracks: 1 });
+    guy.face.set({ expr: 'happy', cracks: 5 });
+    gal.face.set({ expr: 'smile', cracks: 3 });
     const walkers = [3, 4, 5, 6].map((i, k) => s.add(CAST.townie(i), k % 2 ? 6 : -6, 0.3, -10 - k * 12, k % 2 ? 0 : Math.PI));
     walkers.forEach((w, k) => w.face.set({ expr: 'smile', cracks: k % 3 }));
     car(s.scene, 3, -14, '#d84a3a');
     car(s.scene, -3, -46, '#3a7bd5', Math.PI);
-    s.cam = { path: [[V(-2, 40, 42), V(-2, 0, -30)], [V(-4.4, 5.6, 14.8), V(-6.0, 4.7, 5.0)]], ease: 'inout' };
+    s.cam = { path: [[V(-6.5, 4.98, 7.5), V(-7.4, 4.9, 5.4)], [V(-3.5, 9.0, 19.0), V(-5.0, 3.6, 2.0)], [V(-1.5, 24, 38), V(-2, 1, -24)]], ease: 'inout' };
     s.update = (lt) => {
       for (const c of s.chars) { resetPose(c); idle(c, lt); }
       walkers.forEach((w, k) => { walk(w, lt); w.group.position.z = -10 - k * 12 + (k % 2 ? -1 : 1) * lt * 2.4; });
-      talk(guy, lt, 0.6);
-      guy.headPivot.rotation.y = -0.35; gal.headPivot.rotation.y = 0.3;
+      guy.headPivot.rotation.y = 0; gal.headPivot.rotation.y = 0.3;
     };
     return s;
   },
@@ -149,7 +148,7 @@ export const SCENES = {
     s.speakers = { DAD: dad, KID: kid };
     const crackT = ctx.cue('crack');
     s.anchors.crack = () => headPos(kid);
-    s.cam = { path: [[V(0.4, 4.6, 10.5), V(0, 3.5, -1.5)], [V(1.2, 3.5, 3.6), V(1.45, 3.3, -0.6)]], ease: 'out' };
+    s.cam = { path: [[V(-0.3, 5.4, 12.0), V(-0.3, 4.0, -1.5)], [V(1.2, 3.5, 3.6), V(1.45, 3.3, -0.6)]], ease: 'out' };
     s.update = (lt) => {
       resetPose(dad); resetPose(kid); idle(dad, lt); idle(kid, lt);
       crossArms(dad);
@@ -271,10 +270,10 @@ export const SCENES = {
     const mom = s.add(CAST.mom(), 0.6, 0, 2.0);
     const clerk = s.add(CAST.clerk(), -0.9, 0, -1.9);
     faceTo(mom, -0.9, -1.9); faceTo(clerk, 0.6, 2.0);
-    const bag = new THREE.Group(); bag.position.set(0, 3.0, 0.95); mom.body.add(bag);
+    const bag = new THREE.Group(); bag.position.set(0, 2.45, 0.95); mom.body.add(bag);
     box(bag, 1.4, 1.5, 0.9, '#c8a46e', 0, 0, 0);
     box(bag, 0.5, 0.7, 0.5, '#f5deb3', -0.3, 0.95, 0, { round: 0.2 });
-    box(bag, 0.4, 0.9, 0.4, '#ffffff', 0.3, 1.0, 0.05);
+    box(bag, 0.4, 0.7, 0.4, '#ffffff', 0.35, 0.9, 0.05);
     s.speakers = { MOM: mom };
     const crackT = ctx.cue('crack');
     s.anchors.crack = () => headPos(mom);
@@ -352,7 +351,7 @@ export const SCENES = {
       const speaking = lt > line.ls && lt < line.le;
       if (speaking) talk(mom, lt, 0.5);
       mom.face.set({ expr: 'smile' });
-      crackAt(mom.face, 14, lt, tickT);
+      crackAt(mom.face, 14, lt, tickT, {}, false);
       lily.face.set({ expr: lt > line.ls ? 'happy' : 'smile' });
       lily.headPivot.rotation.y = lt > line.ls ? 0.25 : 0;
     };
@@ -434,8 +433,8 @@ export const SCENES = {
       resetPose(lily); idle(lily, lt, 0.5);
       const op = smooth(openT - 0.3, openT + 0.5, lt);
       k.fridge.hinge.rotation.y = -1.9 * op;
-      k.fridge.light.intensity = 9 * op;
-      k.fridge.lampM.emissiveIntensity = 1.2 * op;
+      k.fridge.light.intensity = 4.5 * op;
+      k.fridge.lampM.emissiveIntensity = 0.7 * op;
       lily.armL.rotation.set(lerp(-1.35, -0.2, op), 0, 0);
       lily.headPivot.rotation.x = lerp(0, 0.25, smooth(openT + 0.6, openT + 1.4, lt));
       lily.face.set({ expr: 'sad' });
@@ -450,8 +449,8 @@ export const SCENES = {
     sc.background = new THREE.Color('#0d0906');
     const mom = s.add(CAST.mom(), 0, 0, 0);
     sc.add(new THREE.HemisphereLight(0xffe2b0, 0x1a1008, 0.5));
-    const keyL = new THREE.SpotLight(0xffd7a0, 60, 20, 0.6, 0.6, 1.2); keyL.position.set(-2.5, 6.5, 5); keyL.target.position.set(0, 4.6, 0); sc.add(keyL, keyL.target);
-    const rim = new THREE.PointLight(0xffb84d, 20, 10, 1.5); rim.position.set(1.8, 6, -2); sc.add(rim);
+    const keyL = new THREE.SpotLight(0xffd7a0, 30, 20, 0.6, 0.6, 1.2); keyL.position.set(-2.5, 6.5, 5); keyL.target.position.set(0, 4.6, 0); sc.add(keyL, keyL.target);
+    const rim = new THREE.PointLight(0xffb84d, 14, 10, 1.5); rim.position.set(1.8, 6, -2); sc.add(rim);
     const glow = new THREE.PointLight(0xffc24a, 0, 6, 1.5); glow.position.set(0, 4.7, 2.2); sc.add(glow);
     const dust = bokeh(sc, 46, [10, 8, 4], [0, 4.6, -5], ['#ffb347', '#ffd27a', '#ff8c42', '#fff1c1'], 5);
     const sparks = bokeh(sc, 30, [2.4, 2.4, 1.2], [0, 4.6, 1.2], ['#ffd34d', '#fff1c1'], 9);
@@ -463,7 +462,7 @@ export const SCENES = {
       resetPose(mom); idle(mom, lt, 0.4);
       const gold = smooth(g0 + 0.3, g0 + 4.3, lt);
       mom.face.set({ expr: 'bliss', cracks: 17, grow: 1, gold });
-      glow.intensity = 6 * gold;
+      glow.intensity = 2.2 * gold;
       for (const p of dust) { const u = p.userData; p.position.y = u.base.y + Math.sin(lt * u.sp + u.ph) * 0.4 + lt * 0.12; }
       for (const p of sparks) { const u = p.userData; p.position.y = u.base.y + ((lt * u.sp * 0.6 + u.ph) % 2.4) - 1.2; p.material.opacity = gold * (0.4 + 0.5 * Math.sin(lt * 4 + u.ph) ** 2); }
     };

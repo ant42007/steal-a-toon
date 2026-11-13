@@ -78,7 +78,7 @@ export class Face {
     this.seed = seed;
     this.opts = opts; // {blush, lashes, freckles, mask}
     this.allCracks = makeCracks(seed, 40);
-    this.state = { expr: 'smile', mouth: 0, blink: false, cracks: 0, grow: 1, gold: 0, newGold: false, look: 0, tear: 0 };
+    this.state = { expr: 'smile', mouth: 0, blink: false, cracks: 0, grow: 1, gold: 0, fresh: 0, look: 0, tear: 0 };
     this._key = '';
     this.material = mat(0xffffff, { map: this.tex });
     this.draw();
@@ -210,6 +210,14 @@ export class Face {
       if (!gold) {
         c.strokeStyle = 'rgba(255,255,255,0.35)'; c.lineWidth = 2.5;
         c.save(); c.translate(3, 3); strokePartial(c, cr.pts, frac); c.restore();
+        if (i === n - 1 && S.fresh > 0.02) {   // a brand-new crack flashes red-hot, then cools
+          c.save(); c.globalAlpha = S.fresh;
+          c.shadowColor = 'rgba(255,70,30,1)'; c.shadowBlur = 26; c.strokeStyle = '#ff5a2a'; c.lineWidth = 15;
+          strokePartial(c, cr.pts, frac);
+          for (const b of cr.branches) if (frac > b.at) strokePartial(c, b.pts, Math.min(1, (frac - b.at) * 3));
+          c.shadowBlur = 0; c.strokeStyle = '#ffe9a8'; c.lineWidth = 5; strokePartial(c, cr.pts, frac);
+          c.restore();
+        }
       } else {
         c.shadowBlur = 0; c.strokeStyle = '#fff6c8'; c.lineWidth = 5; strokePartial(c, cr.pts, frac);
       }

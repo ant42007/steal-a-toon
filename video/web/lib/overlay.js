@@ -35,6 +35,7 @@ export class Overlay {
       <div id="fade"></div>`;
     this.el = Object.fromEntries(['vig', 'flash', 'pop', 'cap', 'fade'].map(id => [id, root.querySelector('#' + id)]));
     this._capKey = '';
+    this.sceneEnd = Object.fromEntries(timeline.scenes.map(sc => [sc.id, sc.end]));
     this.endFade = opts.endFade ?? 0.9;
   }
 
@@ -62,7 +63,7 @@ export class Overlay {
     let flash = 0, flashCol = '255,255,255', pop = null;
     for (const c of T.cues) {
       const d = t - c.t;
-      if (d < 0 || d > 1.2) continue;
+      if (d < 0 || d > 1.2 || t >= (this.sceneEnd[c.scene] ?? 1e9)) continue;  // effects end at the cut
       if (c.name === 'crack') {
         flash = Math.max(flash, 0.55 * Math.exp(-d / 0.06));
         pop = { text: 'CRACK!', d, c };
