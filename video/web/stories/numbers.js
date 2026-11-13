@@ -351,10 +351,13 @@ export const SCENES = {
     s.cam = {
       keys: [
         { t: 0, pos: V(17.5, 6.4, 15.5), look: V(7, 4.8, 7.5) },
-        { t: c1, pos: V(17.0, 6.0, 8.6), look: V(9.2, 5.1, 8.2) },
-        { t: c2, pos: V(15, 5.2, 0.5), look: V(-3, 4.8, busZ(c2) - 9) },
-        { t: c3, pos: V(15, 5.0, -7.2), look: V(3, 4.2, -8.0) },
-        { t: ctx.dur, pos: V(15, 5.2, -10), look: V(3, 3.4, -8.5) },
+        { t: c1 - 0.25, pos: V(17.0, 6.0, 8.8), look: V(9.2, 5.1, 8.3) },
+        { t: c1 + 0.45, pos: V(16.9, 5.9, 8.3), look: V(9.2, 5.0, 8.1) },      // hold: the mailman breaks apart
+        { t: c2 - 0.05, pos: V(15.2, 5.3, 1.2), look: V(-3, 4.8, busZ(c2) - 8.6) },
+        { t: c2 + 0.45, pos: V(15.0, 5.2, 0.2), look: V(-3, 4.8, busZ(c2 + 0.45) - 8.4) },   // hold on the driver
+        { t: c3 - 0.05, pos: V(15.0, 5.0, -7.0), look: V(3, 4.3, -8.0) },
+        { t: c3 + 0.55, pos: V(14.9, 5.0, -7.6), look: V(3, 4.0, -8.1) },     // hold: the guard breaks apart
+        { t: ctx.dur, pos: V(15, 5.2, -9.6), look: V(3, 3.4, -8.5) },
       ],
     };
     s.update = (lt) => {
@@ -416,7 +419,7 @@ export const SCENES = {
     const rev = ctx.cue('reveal');
     const tag20 = addTag(leo, '20', { glow: 'rgba(255,40,40,0.95)' });
     const L = ctx.lines;
-    s.cam = { path: [[V(bx + 6.5, 6.6, 6.5), V(bx + 1.2, 2.6, -2.8)], [V(bx + 1.4, 5.4, 1.2), V(bx + 2.4, 3.4, -3.0)], [V(bx + 0.4, 3.5, -2.65), V(bx + 3.3, 4.3, -2.6)]], ease: 'inout' };
+    s.cam = { path: [[V(bx + 6.5, 6.6, 6.5), V(bx + 1.2, 2.6, -2.8)], [V(bx + 1.4, 5.4, 1.2), V(bx + 2.4, 3.4, -3.0)], [V(bx + 0.4, 3.6, -2.65), V(bx + 3.3, 4.75, -2.6)]], ease: 'inout' };
     s.update = (lt) => {
       resetPose(ellie); resetPose(leo); idle(leo, lt, 0.4);
       ellie.face.set({ expr: lt > L[1].ls ? 'worried' : 'smile', look: lt > L[1].ls ? -0.6 : 0 });
@@ -445,7 +448,7 @@ export const SCENES = {
     s.speakers = { ELLIE: ellie, LEO: leo };
     const d0 = ctx.cue('despawn');
     const L = ctx.lines;
-    s.cam = { path: [[V(0.4, 4.7, 7.4), V(0.5, 3.4, -1.2)], [V(3.6, 4.2, 3.6), V(-1.0, 3.1, -1.2)]], ease: 'inout' };
+    s.cam = { path: [[V(-0.4, 4.7, 7.6), V(0.6, 3.5, -1.2)], [V(-4.0, 4.4, 1.9), V(2.4, 3.9, -1.2)]], ease: 'inout' };
     s.update = (lt) => {
       resetPose(ellie); resetPose(leo); idle(leo, lt);
       sit(ellie);

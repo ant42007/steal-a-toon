@@ -15,7 +15,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 v = sys.argv[1]
 B = os.path.join(HERE, "build", v)
-mp4 = os.path.join(HERE, "..", "renders", f"cracks-{v}.mp4")
+mp4 = os.path.join(HERE, "..", "renders", (f"{v}.mp4" if "-" in v else f"cracks-{v}.mp4"))
 T = json.load(open(os.path.join(B, "timeline.json")))
 out = os.path.join(B, "review")
 os.makedirs(out, exist_ok=True)
