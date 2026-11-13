@@ -227,6 +227,9 @@ def main(script_path, outdir):
                 at = it.get("cueAt", "end")
                 ct = t if at == "start" else t + speak_end + it.get("cueOffset", 0.04)
                 cues.append({"name": it["cue"], "t": round(ct, 3), "scene": sc["id"]})
+            for cw in it.get("cues", []):   # cues anchored to the end of a specific word
+                w = words[min(cw["word"], len(words) - 1)]
+                cues.append({"name": cw["name"], "t": round(t + w["e"] + cw.get("offset", 0.0), 3), "scene": sc["id"]})
             t += dur + it.get("after", it.get("gapAfter", D["gap"]))
         t += sc.get("tail", D["sceneTail"])
         scenes.append({"id": sc["id"], "start": round(s0, 3), "end": round(t, 3), "ambience": sc.get("ambience")})
@@ -267,17 +270,33 @@ def main(script_path, outdir):
             place(synth.shimmer(sc["end"] - c["t"]), c["t"], 0.55)
         elif c["name"] == "fridgeOpen":
             place(synth.door_thunk(), c["t"] - 0.28, 0.9)
+        elif c["name"] == "despawn":
+            place(synth.despawn(seed=int(c["t"] * 10)), c["t"], 0.8)
+        elif c["name"] == "spawn":
+            place(synth.spawn_in(), c["t"], 0.75)
+        elif c["name"] == "reveal":
+            place(synth.reveal(), c["t"], 0.9)
+        elif c["name"] == "heartbeat":
+            place(synth.heartbeat(2), c["t"], 0.9)
+        elif c["name"] == "scribble":
+            place(synth.scribble(seed=int(c["t"] * 10)), c["t"], 0.6)
+        elif c["name"] == "circle":
+            place(synth.scribble(seed=3, dur=0.5), c["t"] - 0.2, 0.5)
     for sc in scenes:
         d = sc["end"] - sc["start"]
         if sc["ambience"] == "monitor":
             place(synth.monitor(d), sc["start"], 1.0)
         elif sc["ambience"] == "hum":
             place(synth.hum(d), sc["start"], 1.0)
+        elif sc["ambience"] == "night":
+            place(synth.crickets(d), sc["start"], 1.0)
 
     # ---- music: sections crossfaded, gain envelope from events, ducked under voice
     music = np.zeros(N)
     sect_events = [e for e in music_events if "section" in e] or []
-    starts = [(0.0, "main")] + [(e["t"], e["section"]) for e in sect_events]
+    starts = [(e["t"], e["section"]) for e in sect_events]
+    if not starts or starts[0][0] > 0.01:
+        starts = [(0.0, "main")] + starts
     xf = int(1.2 * SR)
     for k, (st, name) in enumerate(starts):
         en = starts[k + 1][0] if k + 1 < len(starts) else total + 0.5
@@ -345,7 +364,8 @@ def main(script_path, outdir):
             break
         gain += err
 
-    timeline = {"version": S["version"], "title": S.get("title"), "fps": fps, "duration": round(total, 3),
+    timeline = {"version": S["version"], "title": S.get("title"), "slug": S.get("slug", "cracks"),
+                "story": S.get("story", "cracks"), "fps": fps, "duration": round(total, 3),
                 "scenes": scenes, "lines": lines, "cues": cues,
                 "music": [{k: v for k, v in e.items()} for e in music_events]}
     json.dump(timeline, open(os.path.join(outdir, "timeline.json"), "w"), indent=1)

@@ -5,10 +5,25 @@
 <title>CRACKS renderer</title>
 <style>
   @font-face { font-family: 'Lilita One'; src: url('./fonts/LilitaOne-Regular.ttf') format('truetype'); }
+  @font-face { font-family: 'Nunito'; font-weight: 800; src: url('./fonts/Nunito_wght_800.ttf') format('truetype'); }
+  @font-face { font-family: 'Nunito'; font-weight: 900; src: url('./fonts/Nunito_wght_900.ttf') format('truetype'); }
+  @font-face { font-family: 'Patrick Hand'; src: url('./fonts/Patrick_Hand.ttf') format('truetype'); }
   html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
   #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
   #gl { position: absolute; inset: 0; width: 1080px; height: 1920px; display: block; }
+  #bloom { position: absolute; inset: 0; width: 1080px; height: 1920px; display: none; mix-blend-mode: screen; pointer-events: none; }
   #ui { position: absolute; inset: 0; pointer-events: none; font-family: 'Lilita One', sans-serif; }
+  #cap.single {
+    top: 330px; left: 40px; right: 40px; font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 128px; letter-spacing: 0;
+    -webkit-text-stroke: 18px #161616; text-shadow: 0 9px 0 rgba(0,0,0,0.45), 0 0 30px rgba(0,0,0,0.25);
+  }
+  #cap.single .w { transform-origin: 50% 60%; }
+  #bubble {
+    position: absolute; opacity: 0; max-width: 660px; padding: 22px 34px 24px; background: #fff; border-radius: 34px;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 54px; line-height: 1.12; color: #1b1b1f; text-align: center;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.18), 0 0 0 5px rgba(0,0,0,0.08); white-space: normal; width: max-content;
+  }
+  #bubble::after { content: ''; position: absolute; left: 50%; bottom: -26px; margin-left: -22px; border: 22px solid transparent; border-top: 26px solid #fff; border-bottom: 0; }
   #vig { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 62% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.85) 100%); }
   #flash { position: absolute; inset: 0; opacity: 0; }
   #fade { position: absolute; inset: 0; background: #000; opacity: 0; }
@@ -31,7 +46,7 @@
 </script>
 </head>
 <body>
-<div id="stage"><canvas id="gl" width="1080" height="1920"></canvas><div id="ui"></div></div>
+<div id="stage"><canvas id="gl" width="1080" height="1920"></canvas><canvas id="bloom" width="270" height="480"></canvas><div id="ui"></div></div>
 <script type="module" src="./main.js"></script>
 </body>
 </html>

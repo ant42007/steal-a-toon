@@ -1,13 +1,16 @@
 // Deterministic frame renderer: window.renderAt(t) draws the frame at time t (seconds).
+// The story module (timeline.story) supplies SCENES and an optional STYLE.
 import * as THREE from 'three';
-import { SCENES } from './lib/scenes.js';
-import { faceTick } from './lib/char.js';
+import { faceTick as crackFaceTick } from './lib/char.js';
 import { Overlay } from './lib/overlay.js';
 
 const W = 1080, H = 1920;
 const params = new URLSearchParams(location.search);
 const T = await (await fetch(params.get('tl'))).json();
-await document.fonts.load('100px "Lilita One"');
+const mod = await import(!T.story || T.story === 'cracks' ? './lib/scenes.js' : `./stories/${T.story}.js`);
+const SCENES = mod.SCENES;
+const STYLE = { fov: 50, faceTick: crackFaceTick, captions: 'groups', bubbles: false, grade: null, bloom: 0, endFade: '#000', ...(mod.STYLE || {}) };
+await Promise.all(['100px "Lilita One"', '900 100px "Nunito"', '800 100px "Nunito"', '60px "Patrick Hand"'].map(f => document.fonts.load(f)));
 
 const canvas = document.getElementById('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: params.get('aa') !== '0', preserveDrawingBuffer: true });
@@ -18,10 +21,16 @@ renderer.shadowMap.enabled = params.get('sh') !== '0';
 renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.NeutralToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = STYLE.exposure ?? 1.05;
+if (STYLE.grade) canvas.style.filter = STYLE.grade;
 
-const camera = new THREE.PerspectiveCamera(50, W / H, 0.05, 600);
-const overlay = new Overlay(document.getElementById('ui'), T);
+// cheap bloom: a blurred, thresholded quarter-res copy screened over the frame
+const bloomCv = document.getElementById('bloom');
+const bloomCtx = STYLE.bloom ? bloomCv.getContext('2d') : null;
+if (bloomCtx) { bloomCv.style.opacity = STYLE.bloom; bloomCv.style.display = 'block'; }
+
+const camera = new THREE.PerspectiveCamera(STYLE.fov, W / H, 0.05, 900);
+const overlay = new Overlay(document.getElementById('ui'), T, { captions: STYLE.captions, bubbles: STYLE.bubbles, endFadeColor: STYLE.endFade });
 
 const ease = {
   linear: (u) => u,
@@ -36,19 +45,27 @@ function ctxFor(sc) {
   return {
     id: sc.id, dur: sc.end - sc.start, start: sc.start, lines, cues,
     cue: (name, i = 0) => { const c = cues.filter(c => c.name === name)[i]; return c ? c.lt : 1e9; },
+    word: (li, wi) => { const l = lines[li]; const w = l && l.words[Math.min(wi, l.words.length - 1)]; return w ? { s: w.s - sc.start, e: w.e - sc.start } : { s: 1e9, e: 1e9 }; },
   };
 }
 
 const shots = T.scenes.map(sc => {
   const ctx = ctxFor(sc);
   const shot = SCENES[sc.id](ctx);
-  const p = shot.cam.path;
-  shot._pos = p.length > 2 ? new THREE.CatmullRomCurve3(p.map(q => q[0]), false, 'centripetal') : null;
-  shot._look = p.length > 2 ? new THREE.CatmullRomCurve3(p.map(q => q[1]), false, 'centripetal') : null;
+  const cam = shot.cam;
+  if (cam.keys) {
+    // time-keyed move: one continuous Catmull-Rom path, time mapped piecewise-linearly onto it
+    const keys = typeof cam.keys === 'function' ? cam.keys(ctx) : cam.keys;
+    cam._keys = keys;
+    cam._pos = new THREE.CatmullRomCurve3(keys.map(k => k.pos), false, 'centripetal');
+    cam._look = new THREE.CatmullRomCurve3(keys.map(k => k.look), false, 'centripetal');
+  } else if (cam.path.length > 2) {
+    cam._pos = new THREE.CatmullRomCurve3(cam.path.map(q => q[0]), false, 'centripetal');
+    cam._look = new THREE.CatmullRomCurve3(cam.path.map(q => q[1]), false, 'centripetal');
+  }
   return { sc, ctx, shot };
 });
 
-// warm up: compile every scene once so the first real frame of each shot is not slow
 for (const { shot } of shots) renderer.compile(shot.scene, camera);
 
 function mouthFor(speaker, t) {
@@ -58,28 +75,45 @@ function mouthFor(speaker, t) {
   return Math.max(0, Math.min(1, (v - 0.12) * 1.6));
 }
 
+function cameraAt(cam, lt, dur) {
+  if (cam._keys) {
+    const k = cam._keys, n = k.length;
+    let u;
+    if (lt <= k[0].t) u = 0;
+    else if (lt >= k[n - 1].t) u = 1;
+    else {
+      let i = 0; while (lt > k[i + 1].t) i++;
+      const f = (lt - k[i].t) / (k[i + 1].t - k[i].t);
+      const fe = (i === 0 || i === n - 2) ? ease.inout(f) * 0.5 + f * 0.5 : f;  // soft start/end, steady middle
+      u = (i + fe) / (n - 1);
+    }
+    return [cam._pos.getPoint(u), cam._look.getPoint(u)];
+  }
+  const u = ease[cam.ease || 'inout'](Math.min(1, Math.max(0, lt / dur)));
+  const p = cam.path;
+  return [cam._pos ? cam._pos.getPoint(u) : p[0][0].clone().lerp(p[1][0], u), cam._look ? cam._look.getPoint(u) : p[0][1].clone().lerp(p[1][1], u)];
+}
+
 const tmp = new THREE.Vector3();
+function toScreen(v) { tmp.copy(v).project(camera); return { x: (tmp.x * 0.5 + 0.5) * W, y: (-tmp.y * 0.5 + 0.5) * H, behind: tmp.z > 1 }; }
+
 window.renderAt = (t) => {
   const cur = shots.find(s => t >= s.sc.start && t < s.sc.end) || shots[shots.length - 1];
   const { shot, sc, ctx } = cur;
   const lt = t - sc.start;
   shot.update(lt, t);
   const speakerOf = new Map(Object.entries(shot.speakers).map(([k, ch]) => [ch, k]));
-  for (const ch of shot.chars) faceTick(ch, t, speakerOf.has(ch) ? mouthFor(speakerOf.get(ch), t) : 0);
+  for (const ch of shot.chars) STYLE.faceTick(ch, t, speakerOf.has(ch) ? mouthFor(speakerOf.get(ch), t) : 0);
 
   // the one camera move
-  const u = ease[shot.cam.ease || 'inout'](Math.min(1, Math.max(0, lt / ctx.dur)));
-  const p = shot.cam.path;
-  const pos = shot._pos ? shot._pos.getPoint(u) : p[0][0].clone().lerp(p[1][0], u);
-  const look = shot._look ? shot._look.getPoint(u) : p[0][1].clone().lerp(p[1][1], u);
-  camera.fov = shot.cam.fov || 50;
+  const [pos, look] = cameraAt(shot.cam, lt, ctx.dur);
+  camera.fov = shot.cam.fov || STYLE.fov;
   camera.position.copy(pos);
   camera.lookAt(look);
   camera.updateProjectionMatrix();
-  // impact shake on cracks
   for (const c of ctx.cues) {
     const d = lt - c.lt;
-    const amp = c.name === 'crack' ? 0.07 : c.name === 'goldcrack' ? 0.03 : 0;
+    const amp = { crack: 0.07, goldcrack: 0.03, reveal: 0.05 }[c.name] || 0;
     if (amp && d >= 0 && d < 0.4) {
       const k = amp * (1 - d / 0.4) ** 2;
       camera.translateX(Math.sin(d * 97) * k);
@@ -88,19 +122,27 @@ window.renderAt = (t) => {
   }
   camera.updateMatrixWorld();
   renderer.render(shot.scene, camera);
+  if (bloomCtx) {
+    bloomCtx.filter = 'brightness(0.8) contrast(3.2) saturate(1.4) blur(7px)';
+    bloomCtx.clearRect(0, 0, bloomCv.width, bloomCv.height);
+    bloomCtx.drawImage(canvas, 0, 0, bloomCv.width, bloomCv.height);
+  }
 
   overlay.update(t, {
     vignette: shot.vignette,
-    project: (cue) => {
-      const fn = shot.anchors[cue.name];
-      if (!fn) return null;
-      tmp.copy(fn()).project(camera);
-      return { x: (tmp.x * 0.5 + 0.5) * W, y: (-tmp.y * 0.5 + 0.5) * H };
+    project: (cue) => { const fn = shot.anchors[cue.name]; return fn ? toScreen(fn()) : null; },
+    speakerAt: (speaker) => {
+      const ch = shot.speakers[speaker];
+      if (!ch || !ch.head || !ch.group.visible) return null;
+      const v = new THREE.Vector3(); ch.head.getWorldPosition(v);
+      v.y += (shot.bubbleLift ?? 1.9) * ch.group.scale.y;
+      return toScreen(v);
     },
   });
   return cur.sc.id;
 };
 
 window.__timeline = T;
+window.__shots = shots;
 window.__info = () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles });
 window.__ready = true;

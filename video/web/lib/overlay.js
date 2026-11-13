@@ -31,17 +31,60 @@ export class Overlay {
     root.innerHTML = `
       <div id="vig"></div><div id="flash"></div>
       <div id="pop"></div>
+      <div id="bubble"><span></span></div>
       <div id="cap"></div>
       <div id="fade"></div>`;
-    this.el = Object.fromEntries(['vig', 'flash', 'pop', 'cap', 'fade'].map(id => [id, root.querySelector('#' + id)]));
+    this.el = Object.fromEntries(['vig', 'flash', 'pop', 'cap', 'fade', 'bubble'].map(id => [id, root.querySelector('#' + id)]));
+    this.mode = opts.captions || 'groups';
+    this.bubbles = !!opts.bubbles;
+    if (this.mode === 'single') this.el.cap.classList.add('single');
+    this.el.fade.style.background = opts.endFadeColor || '#000';
+    this.words = timeline.lines.flatMap(l => l.words.map(w => ({ ...w, speaker: l.speaker, scene: l.scene, lineEnd: l.end })));
     this._capKey = '';
     this.sceneEnd = Object.fromEntries(timeline.scenes.map(sc => [sc.id, sc.end]));
     this.endFade = opts.endFade ?? 0.9;
   }
 
-  update(t, { vignette = 0.35, project = null } = {}) {
+  update(t, { vignette = 0.35, project = null, speakerAt = null } = {}) {
     const { el, T } = this;
-    // captions
+    if (this.mode === 'single') this.single(t); else this.grouped(t);
+    if (this.bubbles) this.bubble(t, speakerAt);
+    this.effects(t, vignette, project);
+  }
+
+  // one lowercase word at a time, upper third (Roblox story-video style)
+  single(t) {
+    const ws = this.words;
+    let i = -1;
+    for (let k = 0; k < ws.length; k++) { if (ws[k].s - 0.02 <= t) i = k; else break; }
+    let html = '';
+    if (i >= 0) {
+      const w = ws[i], next = ws[i + 1];
+      const hold = Math.min(next ? next.s : 1e9, Math.max(w.e + 0.35, w.e));
+      if (t < hold && t < (this.sceneEnd[w.scene] ?? 1e9)) {
+        const pop = 1 + 0.16 * (1 - smooth(w.s, w.s + 0.1, t));
+        const word = w.w.toLowerCase().replace(/[.,!?…]+$/, '').replace(/^["“]|["”]$/g, '');
+        html = `<span class="w" style="transform:scale(${pop.toFixed(3)})">${word}</span>`;
+      }
+    }
+    if (html !== this._capKey) { this.el.cap.innerHTML = html; this._capKey = html; }
+  }
+
+  // Roblox bubble chat above the speaking character's head
+  bubble(t, speakerAt) {
+    const el = this.el.bubble;
+    const l = this.T.lines.find(l => l.speaker !== 'N' && t >= l.start - 0.05 && t < l.end + 0.5 && t < (this.sceneEnd[l.scene] ?? 1e9));
+    const p = l && speakerAt ? speakerAt(l.speaker) : null;
+    if (!l || !p || p.behind) { el.style.opacity = 0; return; }
+    const k = smooth(l.start - 0.05, l.start + 0.1, t) * (1 - smooth(l.end + 0.3, l.end + 0.5, t));
+    const s = 0.85 + 0.15 * smooth(l.start - 0.05, l.start + 0.12, t);
+    const x = clamp(p.x, 370, 710), y = clamp(p.y, 660, 1500);   // stays inside the frame, below the caption
+    if (el._text !== l.text) { el.firstChild.textContent = l.text; el._text = l.text; }
+    el.style.cssText = `opacity:${k.toFixed(3)};left:${x.toFixed(0)}px;top:${y.toFixed(0)}px;transform:translate(-50%,-100%) scale(${s.toFixed(3)})`;
+  }
+
+  grouped(t) {
+    const { el } = this;
     const g = this.groups.find(g => t >= g.start && t < g.end);
     let html = '';
     if (g) {
@@ -58,7 +101,10 @@ export class Overlay {
       el.cap.className = g.fx === 'echo' ? 'echo' : g.speaker === 'N' ? 'narr' : 'dlg';
     }
     if (html !== this._capKey) { el.cap.innerHTML = html; this._capKey = html; }
+  }
 
+  effects(t, vignette, project) {
+    const { el, T } = this;
     // flashes + popups from cues
     let flash = 0, flashCol = '255,255,255', pop = null;
     for (const c of T.cues) {
@@ -69,6 +115,10 @@ export class Overlay {
         pop = { text: 'CRACK!', d, c };
       } else if (c.name === 'goldcrack') {
         flash = Math.max(flash, 0.6 * Math.exp(-d / 0.25)); flashCol = '255,206,84';
+      } else if (c.name === 'spawn') {
+        flash = Math.max(flash, 0.9 * Math.exp(-d / 0.35));
+      } else if (c.name === 'reveal') {
+        flash = Math.max(flash, 0.25 * Math.exp(-d / 0.12)); flashCol = '255,60,60';
       }
     }
     el.flash.style.opacity = flash.toFixed(3);

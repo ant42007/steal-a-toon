@@ -144,6 +144,79 @@ def door_thunk():
     return _norm(s, 0.35)
 
 
+def despawn(seed=1):
+    """Soft 'poof': airy noise swell + descending sparkle (no game sounds, all synthesized)."""
+    rng = np.random.default_rng(seed)
+    dur = 1.3
+    t = _t(dur)
+    air = _lowpass(rng.standard_normal(len(t)), 3500) * np.exp(-t / 0.25) * np.minimum(1, t / 0.02)
+    out = air * 0.6
+    for i, midi in enumerate([93, 88, 84, 81, 76]):
+        f = 440 * 2 ** ((midi - 69) / 12)
+        b = _bell(f, dur, 0.7) * (0.35 - i * 0.04)
+        i0 = int((0.03 + i * 0.045) * SR)
+        out[i0:] += b[: len(out) - i0]
+    thump = np.sin(2 * np.pi * np.cumsum(120 * np.exp(-t / 0.08) + 50) / SR) * np.exp(-t / 0.06) * 0.5
+    return _norm(out + thump, 0.85)
+
+
+def spawn_in():
+    """Rising shimmer for appearing on the spawn pad."""
+    dur = 2.4
+    out = np.zeros(int(dur * SR))
+    for i, midi in enumerate([72, 76, 79, 84, 88, 91, 96]):
+        f = 440 * 2 ** ((midi - 69) / 12)
+        b = _bell(f, dur, 1.2) * 0.32
+        i0 = int(i * 0.07 * SR)
+        out[i0:] += b[: len(out) - i0]
+    t = _t(dur)
+    sweep = np.sin(2 * np.pi * np.cumsum(300 + 900 * np.minimum(1, t / 0.6)) / SR) * np.exp(-t / 0.5) * 0.12
+    return _norm(out + sweep, 0.8)
+
+
+def reveal():
+    """The twist sting: low boom + dissonant high cluster that hangs."""
+    dur = 3.0
+    t = _t(dur)
+    boom = np.sin(2 * np.pi * np.cumsum(70 * np.exp(-t / 0.4) + 35) / SR) * np.exp(-t / 0.7)
+    cl = sum(np.sin(2 * np.pi * f * t) for f in (987.8, 1046.5, 1108.7)) * np.exp(-t / 1.4) * 0.08
+    cl *= np.minimum(1, t / 0.15)
+    return _norm(boom * 0.9 + cl, 0.85)
+
+
+def heartbeat(n=2, period=0.85):
+    dur = n * period + 0.4
+    out = np.zeros(int(dur * SR))
+    bt = _t(0.18)
+    def thud(f0):
+        return np.sin(2 * np.pi * np.cumsum(f0 * np.exp(-bt / 0.05) + 40) / SR) * np.exp(-bt / 0.05)
+    for k in range(n):
+        for off, f0, g in ((0.0, 70, 1.0), (0.22, 60, 0.7)):
+            i0 = int((k * period + off) * SR)
+            out[i0:i0 + len(bt)] += thud(f0) * g
+    return _norm(out, 0.8)
+
+
+def scribble(seed=1, dur=0.35):
+    """Pen strike across paper."""
+    rng = np.random.default_rng(seed)
+    t = _t(dur)
+    n = _highpass(rng.standard_normal(len(t)), 2000)
+    env = np.minimum(1, t / 0.02) * np.minimum(1, (dur - t) / 0.05) * (0.6 + 0.4 * np.sin(2 * np.pi * 14 * t) ** 2)
+    return _norm(n * env, 0.3)
+
+
+def crickets(dur):
+    t = _t(dur)
+    out = np.zeros_like(t)
+    for f, rate, ph in ((4300, 2.1, 0.0), (4700, 1.7, 0.4)):
+        chirp = (np.sin(2 * np.pi * rate * t + ph) > 0.6).astype(float)
+        trill = 0.5 + 0.5 * np.sin(2 * np.pi * 32 * t)
+        out += np.sin(2 * np.pi * f * t) * chirp * trill
+    fade = np.minimum(1, np.minimum(t / 0.8, (dur - t) / 0.8))
+    return out * fade * 0.018
+
+
 # ---------------------------------------------------------------- music
 
 def _midi(n):
@@ -175,8 +248,14 @@ SECTIONS = {
     "main":    [(45, [57, 60, 64]), (41, [57, 60, 65]), (48, [55, 60, 64]), (43, [55, 59, 62])],   # Am F C G
     "swell":   [(41, [57, 60, 65]), (43, [55, 59, 62]), (40, [55, 59, 64]), (45, [57, 60, 64])],   # F G Em Am
     "resolve": [(41, [57, 60, 65]), (43, [55, 59, 62]), (48, [55, 60, 64]), (48, [55, 60, 64, 62])],  # F G C Cadd9
+    "mystery": [(38, [57, 62, 65]), (34, [58, 62, 65]), (41, [57, 60, 65]), (45, [57, 61, 64])],      # Dm Bb F A
+    "tense":   [(38, [57, 62, 65]), (39, [58, 63, 67]), (38, [57, 62, 65]), (37, [56, 61, 64])],      # Dm Eb Dm C#dim-ish
+    "sorrow":  [(34, [58, 62, 65]), (41, [57, 60, 65]), (36, [55, 60, 64]), (38, [57, 62, 65])],      # Bb F C Dm
+    "hope":    [(41, [57, 60, 65]), (36, [55, 60, 64]), (38, [57, 62, 65]), (34, [58, 62, 65, 69])],  # F C Dm Bbmaj7
 }
 MELODY = {
+    "mystery": [None, 74, None, 72, 69, None, None, 73, None, 74, None, 77, 76, None, None, None],
+    "hope": [None, 72, 77, None, 76, None, 74, 72, None, 69, 72, None, 74, None, None, None],
     "swell": [None, 76, 77, None, 74, None, 76, 79, None, 76, 71, None, 72, None, None, None],
     "resolve": [None, 77, 76, None, 74, None, 79, None, 76, None, None, 74, 76, None, None, None],
 }

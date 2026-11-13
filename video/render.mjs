@@ -99,7 +99,7 @@ const silent = path.join(BUILD, 'video.mp4');
 execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', silent]);
 const outDir = path.join(ROOT, '..', 'renders');
 fs.mkdirSync(outDir, { recursive: true });
-const final = opt('--out', path.join(outDir, `cracks-${version}.mp4`));
+const final = opt("--out", path.join(outDir, `${timeline.slug || "cracks"}-${timeline.version}.mp4`));
 execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', silent, '-i', path.join(BUILD, 'audio.wav'), '-map', '0:v', '-map', '1:a',
   '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', final]);
 console.log(`done in ${Math.round((Date.now() - t0) / 1000)}s -> ${final}`);

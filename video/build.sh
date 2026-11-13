@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # One-command build: script JSON -> voiceover + captions timeline + mix -> 3D render -> MP4
-#   bash build.sh v2            (writes ../renders/cracks-v2.mp4)
+#   bash build.sh v2            (CRACKS: scripts/script.v2.json -> ../renders/cracks-v2.mp4)
+#   bash build.sh numbers-v1    (THE NUMBERS: scripts/numbers-v1.json -> ../renders/numbers-v1.mp4)
 set -euo pipefail
 cd "$(dirname "$0")"
 V="${1:?usage: build.sh <version>}"
+S="scripts/$V.json"; [ -f "$S" ] || S="scripts/script.$V.json"
 
-# models for local TTS (Kokoro v1.0, ~350MB, downloaded once)
 M=.cache/models
 if [ ! -f "$M/kokoro-v1.0.onnx" ]; then
   mkdir -p "$M"
@@ -15,5 +16,5 @@ if [ ! -f "$M/kokoro-v1.0.onnx" ]; then
 fi
 [ -d node_modules/three ] || npm install --no-audit --no-fund
 
-python3 tools/build_audio.py "scripts/script.$V.json" "build/$V"
+python3 tools/build_audio.py "$S" "build/$V"
 node render.mjs "$V" --workers "${WORKERS:-3}"
