@@ -1,0 +1,13 @@
+{
+  "name": "steal-a-toon-video",
+  "private": true,
+  "type": "module",
+  "description": "Roblox-style 3D story shorts: three.js scenes rendered to 1080x1920 MP4 with Playwright + ffmpeg",
+  "scripts": {
+    "build:v1": "bash build.sh v1",
+    "build:v2": "bash build.sh v2"
+  },
+  "dependencies": {
+    "three": "0.170.0"
+  }
+}

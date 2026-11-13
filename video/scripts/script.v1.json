@@ -1,0 +1,72 @@
+{
+  "version": "v1",
+  "title": "Cracks",
+  "fps": 30,
+  "defaults": { "gap": 0.22, "sceneLead": 0.2, "sceneTail": 0.25 },
+  "voices": {
+    "N":      { "voice": "am_michael", "speed": 1.0 },
+    "DAD":    { "voice": "am_fenrir",  "speed": 1.0 },
+    "KID":    { "voice": "am_puck",    "speed": 1.05, "pitch": 1.22 },
+    "MOM":    { "voice": "af_heart",   "speed": 0.95 },
+    "DOCTOR": { "voice": "bm_george",  "speed": 0.95 },
+    "LILY":    { "voice": "af_bella",   "speed": 1.0,  "pitch": 1.18 }
+  },
+  "scenes": [
+    { "id": "town", "items": [
+      { "say": "N", "text": "In this world, every lie you tell cracks your face." }
+    ]},
+    { "id": "teeth", "items": [
+      { "say": "DAD", "text": "Did you brush your teeth?" },
+      { "say": "KID", "text": "Yep!", "cue": "crack", "after": 0.7 }
+    ]},
+    { "id": "plaza", "items": [
+      { "say": "N", "text": "Little lies, little cracks." },
+      { "say": "N", "text": "Big lies? That's why every politician wears a mask." },
+      { "say": "N", "text": "So in this world, nobody lies." }
+    ]},
+    { "id": "hallway", "items": [
+      { "say": "N", "text": "Nobody except Lily's mom." },
+      { "say": "N", "text": "Her face had more cracks than anyone in town." },
+      { "say": "MOM", "text": "Rent's coming Friday, I promise!", "cue": "crack", "after": 0.55 }
+    ]},
+    { "id": "store", "items": [
+      { "say": "MOM", "text": "I'll pay you back tomorrow.", "cue": "crack", "after": 0.55 }
+    ]},
+    { "id": "school", "items": [
+      { "say": "N", "text": "At school, they called Lily the liar's kid." },
+      { "say": "N", "text": "So Lily swore she'd never tell a single lie." }
+    ]},
+    { "id": "dinner", "items": [
+      { "say": "N", "text": "And every night, her mom said the same thing." },
+      { "say": "MOM", "text": "Eat, baby. I already ate.", "cue": "tick", "after": 0.5 }
+    ]},
+    { "id": "hospital", "ambience": "monitor", "items": [
+      { "say": "N", "text": "Then one day, her mom collapsed." },
+      { "say": "DOCTOR", "text": "One more crack, and she won't wake up." },
+      { "say": "LILY", "text": "Then stop lying!", "after": 0.3 }
+    ]},
+    { "id": "fridge", "ambience": "hum", "items": [
+      { "say": "N", "text": "That night, Lily opened the fridge.", "cue": "fridgeOpen", "cueAt": "end" },
+      { "say": "N", "text": "Empty. It had been empty for months." }
+    ]},
+    { "id": "goldface", "items": [
+      { "say": "N", "text": "Every lie her mom ever told... was so Lily could eat.", "cue": "goldStart", "cueAt": "start" },
+      { "say": "MOM", "text": "I already ate.", "fx": "echo", "after": 0.4 }
+    ]},
+    { "id": "lastdinner", "items": [
+      { "say": "N", "text": "The next night, there was one plate." },
+      { "say": "MOM", "text": "Eat, baby. I already", "display": "Eat, baby. I alr—", "cut": { "word": 3, "frac": 0.45 }, "gapAfter": 0.08 },
+      { "say": "LILY", "text": "I already ate, Mom.", "cue": "goldcrack", "after": 0.9 }
+    ]},
+    { "id": "ending", "items": [
+      { "say": "N", "text": "It was the first lie Lily ever told." },
+      { "say": "N", "text": "Because in this world, the people with the most cracks..." },
+      { "say": "N", "text": "are the ones who love you most.", "after": 1.4 }
+    ]}
+  ],
+  "music": [
+    { "scene": "town", "at": "start", "gain": 1.0 },
+    { "scene": "goldface", "at": "start", "gain": 1.0, "section": "swell" },
+    { "scene": "ending", "at": "start", "gain": 1.0, "section": "resolve" }
+  ]
+}
