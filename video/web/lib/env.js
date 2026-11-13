@@ -44,7 +44,7 @@ export function cyl(parent, r, h, color, x, y, z, o = {}) {
   return mesh;
 }
 
-export const emissive = (color, intensity = 1) => new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: intensity, roughness: 1 });
+export const emissive = (color, intensity = 1) => new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: intensity });
 
 // ---------------------------------------------------------------- sky + light
 
@@ -179,7 +179,7 @@ export function lamp(parent, x, z, on = false) {
 export function cloud(parent, x, y, z, s = 1, seed = 1) {
   const R = rng(seed);
   const g = new THREE.Group(); g.position.set(x, y, z); g.scale.setScalar(s); parent.add(g);
-  const m = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1, emissive: '#ffffff', emissiveIntensity: 0.35 });
+  const m = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#ffffff', emissiveIntensity: 0.35 });
   for (let i = 0; i < 5; i++) {
     const w = 4 + R() * 5;
     const b = new THREE.Mesh(new RoundedBoxGeometry(w, 2 + R() * 2, 3 + R() * 2, 2, 0.8), m);
@@ -276,7 +276,7 @@ export function fridge(parent, x, z, { color = '#e9ecef', ry = 0 } = {}) {
   box(g, W, t, D, color, 0, H - t / 2, 0);                              // top
   box(g, W, 0.6, D, color, 0, 0.3, 0);                                   // bottom
   box(g, W - 2 * t - 0.02, H - 1.0, 0.05, null, 0, H / 2 + 0.2, -D / 2 + t + 0.03, { material: inner, cast: false });
-  for (const sy of [2.0, 3.6, 5.0]) box(g, W - 2 * t - 0.05, 0.08, D - 0.4, null, 0, sy, 0, { material: new THREE.MeshStandardMaterial({ color: '#dff4ff', transparent: true, opacity: 0.55, roughness: 0.1 }), cast: false });
+  for (const sy of [2.0, 3.6, 5.0]) box(g, W - 2 * t - 0.05, 0.08, D - 0.4, null, 0, sy, 0, { material: new THREE.MeshLambertMaterial({ color: '#dff4ff', transparent: true, opacity: 0.55 }), cast: false });
   box(g, W - 2 * t - 0.05, 0.1, D - 0.4, '#ffffff', 0, 0.65, 0, { cast: false });
   // interior lamp panel
   const lampM = emissive('#fff6e6', 0.0);

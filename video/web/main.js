@@ -10,11 +10,12 @@ const T = await (await fetch(params.get('tl'))).json();
 await document.fonts.load('100px "Lilita One"');
 
 const canvas = document.getElementById('gl');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: params.get('aa') !== '0', preserveDrawingBuffer: true });
 renderer.setPixelRatio(1);
 renderer.setSize(W, H, false);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+if (params.get('rs')) renderer.setSize(W * +params.get('rs'), H * +params.get('rs'), false);
+renderer.shadowMap.enabled = params.get('sh') !== '0';
+renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.NeutralToneMapping;
 renderer.toneMappingExposure = 1.05;
@@ -101,4 +102,5 @@ window.renderAt = (t) => {
 };
 
 window.__timeline = T;
+window.__info = () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles });
 window.__ready = true;

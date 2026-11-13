@@ -2,7 +2,11 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-export const mat = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.62, metalness: 0, ...o });
+// Lambert shading: matte plastic look, and several times cheaper than PBR on a software GPU.
+export const mat = (color, o = {}) => {
+  const { roughness, metalness, ...rest } = o; // PBR-only options are ignored
+  return new THREE.MeshLambertMaterial({ color, ...rest });
+};
 
 function rng(seed) {
   let s = seed >>> 0 || 1;
