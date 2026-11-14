@@ -1,0 +1,17 @@
+{
+  "note": "Recurring cast voices, shared by every Roblox story. Leo is the main character of every video; his voice is am_fenrir (masculine, ~140 Hz, distinct from the am_michael narrator).",
+  "voices": {
+    "N": {
+      "voice": "am_michael",
+      "speed": 1.35,
+      "tempo": 1.28,
+      "squeeze": 0.09
+    },
+    "LEO": {
+      "voice": "am_fenrir",
+      "speed": 1.2,
+      "tempo": 1.15,
+      "squeeze": 0.08
+    }
+  }
+}
